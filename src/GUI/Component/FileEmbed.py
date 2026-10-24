@@ -3,6 +3,12 @@ from src.Proccess import Steganography
 from src.Proccess.FileManagement import Secrets
 from . import FileStego, FileCrypto
 
+EMBED_STATUS = {
+    0: 'Embed ERROR but Saved. ',
+    1: 'Embed FAILED: ',
+    2: 'Embed SUCCEED.'
+}
+
 
 class FileEmbedPanel:
     def __init__(self, page: ft.Page):
@@ -135,6 +141,7 @@ class FileEmbedOperations:
     def on_execute(self, e):
         for path in self.file_path.values():
             if path is None or path == '':
+                self.page.open(ft.SnackBar(ft.Text('Incomplete Paths')))
                 return
 
         stego_config = FileStego.FileStegoDialog(self.page).operations.get_config()
@@ -151,4 +158,9 @@ class FileEmbedOperations:
             parameters=stego_config['params'],
             key=key
         )
-        stego.embed_file(self.file_path['input'], self.file_path['embed'], self.file_path['output'])
+        try:
+            status, info = stego.embed_file(self.file_path['input'], self.file_path['embed'], self.file_path['output'])
+            if status in EMBED_STATUS.keys():
+                self.page.open(ft.SnackBar(ft.Text(f'{EMBED_STATUS[status]}{info}')))
+        except Exception as e:
+            self.page.open(ft.SnackBar(ft.Text(f'Error: {e}')))

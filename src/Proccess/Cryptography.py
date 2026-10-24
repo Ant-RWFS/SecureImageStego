@@ -1,9 +1,16 @@
 import struct
 from . import DataStructure
-from .Crypto.AES.AESNI import AES_CBC, AES_GCM
+from .Crypto.AES.AESNI import AES_CTR, AES_CBC, AES_GCM
+from .Crypto.SHA3.SHA3 import SHA3
 
 CRYPTOGRAPHY = {
     'AES': {
+        'CTR': {
+            'enc': AES_CTR.pack,
+            'dec': AES_CTR.unpack,
+            'params': [],
+            'key_len': AES_CTR.KEY_LEN
+        },
         'CBC': {
             'enc': AES_CBC.pack,
             'dec': AES_CBC.unpack,
@@ -44,18 +51,24 @@ class Cryptography:
         return params
 
     def encrypt(self, _plaintext):
-        info = CRYPTOGRAPHY[self.algorithm][self.mode]
-        package = info['enc'](self.encode(_plaintext), self.key, **self.convert_params())
-        if package is None:
-            return None
-        return self.serialize(package)
+        if self.algorithm != '-':
+            info = CRYPTOGRAPHY[self.algorithm][self.mode]
+            package = info['enc'](self.encode(_plaintext), self.key, **self.convert_params())
+            if package is None:
+                return None
+            return self.serialize(package)
+        else:
+            return _plaintext
 
     def decrypt(self, _ciphertext):
-        info = CRYPTOGRAPHY[self.algorithm][self.mode]
-        package = self.deserialize(self.normalize(_ciphertext))
-        if package is None:
-            return None
-        return info['dec'](package, self.key, **self.convert_params())
+        if self.algorithm != '-':
+            info = CRYPTOGRAPHY[self.algorithm][self.mode]
+            package = self.deserialize(self.normalize(_ciphertext))
+            if package is None:
+                return None
+            return info['dec'](package, self.key, **self.convert_params())
+        else:
+            return _ciphertext
 
     @staticmethod
     def key_len(_algorithm: str, _mode: str) -> int:
@@ -91,3 +104,20 @@ class Cryptography:
             if len(_data) > 0 and len(_data) % 8 == 0 and set(_data) <= {'0', '1'}:
                 return bytes(int(_data[i:i + 8], 2) for i in range(0, len(_data), 8))
         return _data.encode('latin-1')
+
+
+class Integrity:
+    def __init__(self):
+        self.algorithm = SHA3()
+
+    def digest(self, _payload):
+        return self.algorithm.payload_digest(_payload)
+
+    def attach(self, _payload, _digest):
+        return self.algorithm.attach(_payload, _digest)
+
+    def detach(self, _extracted):
+        return self.algorithm.detach(_extracted)
+
+    def verify(self, _payload, _digest):
+        return self.algorithm.verify(_payload, _digest)

@@ -3,6 +3,91 @@ import os
 from src.Proccess.FileManagement import Paths
 
 
+class AES_CTR:
+    KEY_LEN = 16
+    IV_LEN = 16
+
+    aes_lib = None
+    ctr_lib = None
+
+    @classmethod
+    def load_lib(cls):
+        if cls.ctr_lib is not None:
+            return cls.ctr_lib
+
+        aes_dll = Paths.crypto_dll('aes', 'aes')
+        ctr_dll = Paths.crypto_dll('aes', 'ctr')
+
+        if aes_dll is None:
+            return
+        if ctr_dll is None:
+            return
+
+        aes_lib = ctypes.CDLL(str(aes_dll))
+        aes_lib.cpu_has_aes_ni.restype = ctypes.c_int
+        aes_lib.cpu_has_aes_ni.argtypes = []
+        if not aes_lib.cpu_has_aes_ni():
+            raise RuntimeError('CPU does not support AES-NI. The module is disabled.')
+
+        ctr_lib = ctypes.CDLL(str(ctr_dll))
+        ctr_lib.ctr_crypt.restype = ctypes.c_int
+        ctr_lib.ctr_crypt.argtypes = [
+            ctypes.c_char_p,
+            ctypes.c_char_p,
+            ctypes.c_char_p,
+            ctypes.c_size_t,
+            ctypes.c_char_p,
+            ctypes.POINTER(ctypes.c_size_t)
+        ]
+
+        cls.aes_lib = aes_lib
+        cls.ctr_lib = ctr_lib
+        return cls.ctr_lib
+
+    def __init__(self, key, iv=None):
+        self.lib = self.load_lib()
+        self.key = bytes(key)
+        self.iv = os.urandom(self.IV_LEN) if (iv is None or len(iv) != self.IV_LEN) else iv
+
+    def crypt(self, data):
+        in_bytes = bytes(data)
+        out_buf = ctypes.create_string_buffer(max(len(in_bytes), 1))
+        out_len = ctypes.c_size_t(0)
+
+        rc = self.lib.ctr_crypt(self.key, self.iv, in_bytes, len(in_bytes), out_buf, ctypes.byref(out_len))
+        if rc != 0:
+            return None
+        return self.iv, out_buf.raw[:out_len.value]
+
+    @classmethod
+    def pack(cls, _data: bytes, _key: bytes, **params):
+        iv = params.get('iv')
+        cipher = cls(_key, iv)
+        result = cipher.crypt(_data)
+        if result is None:
+            return None
+        used_iv, ct = result
+        return {
+            'algorithm': 'AES-CTR',
+            'params': used_iv,
+            'tag': b'',
+            'ciphertext': ct
+        }
+
+    @classmethod
+    def unpack(cls, _package: dict, _key: bytes, **params):
+        iv = _package.get('params', b'')
+        ct = _package.get('ciphertext')
+        if ct is None:
+            return None
+        cipher = cls(_key, iv)
+        result = cipher.crypt(ct)
+        if result is None:
+            return None
+        _, pt = result
+        return pt
+
+
 class AES_CBC:
     KEY_LEN = 16
     IV_LEN = 16
@@ -229,4 +314,3 @@ class AES_GCM:
             return None
         cipher = cls(_key, nonce)
         return cipher.decrypt(ct, tag, aad, nonce)
-

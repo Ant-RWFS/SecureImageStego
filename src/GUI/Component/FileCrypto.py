@@ -52,7 +52,7 @@ class FileCryptoDialog(ft.AlertDialog):
         return ft.Dropdown(
             label='Mode',
             options=[ft.dropdown.Option(mode) for mode in Cryptography.CRYPTOGRAPHY['AES'].keys()],
-            value='CBC',
+            value='CTR',
             on_change=lambda e: self.operations.on_mode_change(e)
         )
 

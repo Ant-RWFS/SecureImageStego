@@ -58,5 +58,3 @@ class MainWindowOperation:
     def __init__(self, page: ft.Page, window: MainWindow):
         self.page = page
         self.window = window
-
-    # def

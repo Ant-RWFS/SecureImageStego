@@ -3,6 +3,14 @@ from src.Proccess import Steganography
 from src.Proccess.FileManagement import Secrets
 from . import FileStego, FileCrypto
 
+EXTRACT_STATUS = {
+    0: 'Data is Empty.',
+    1: 'Integrity check FAILED: hidden image was altered. File is not saved.',
+    2: 'Extracted Failed: ',
+    3: 'Extracted. SHA3-256 integrity check PASSED.',
+    4: 'Extracted, but no SHA3-256 hash found.'
+}
+
 
 class FileExtractPanel:
     def __init__(self, page: ft.Page):
@@ -130,6 +138,7 @@ class FileExtractOperations:
     def on_execute(self, e):
         for path in self.file_path.values():
             if path is None or path == '':
+                self.page.open(ft.SnackBar(ft.Text('Incomplete Paths')))
                 return
 
         stego_config = FileStego.FileStegoDialog(self.page).operations.get_config()
@@ -146,4 +155,11 @@ class FileExtractOperations:
             parameters=stego_config['params'],
             key=key
         )
-        stego.extract_file(self.file_path['input'], self.file_path['output'])
+        try:
+            status, info = stego.extract_file(self.file_path['input'], self.file_path['output'])
+            if status in EXTRACT_STATUS.keys():
+                self.page.open(ft.SnackBar(ft.Text(f'{EXTRACT_STATUS[status]}{info}')))
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            self.page.open(ft.SnackBar(ft.Text(f'Error: {e}')))

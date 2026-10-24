@@ -1,7 +1,8 @@
-from stegosphere.embeddings import LSB, VD
+import warnings
 from stegosphere import image, io, payloader
+from stegosphere.embeddings import LSB, VD
 from . import DataStructure
-from .Cryptography import Cryptography
+from .Cryptography import Cryptography, Integrity
 
 STEGANOGRAPHY = {
     'LSB': {
@@ -31,6 +32,7 @@ class Steganography:
                 key,
                 encryption['params']
             )
+        self.integrity = Integrity()
 
     def embed_file(self, _input_file, _payload_file, _output_file):
         algorithm_info = STEGANOGRAPHY[self.algorithm]
@@ -42,13 +44,24 @@ class Steganography:
         carrier = container.read()
         payload_binary = io.file_to_binary(_payload_file)
 
+        digest = self.integrity.digest(payload_binary)
+        payload_binary = self.integrity.attach(payload_binary, digest)
+
         if self.crypto is not None:
             raw = self.crypto.encrypt(payload_binary)
             if raw is None:
                 return
             payload_binary = raw.decode('latin-1')
-        embedded_data = embed_func(carrier, payload_binary, framing=payloader.FixedHeader(), **params)
-        container.save(_output_file, embedded_data)
+        try:
+            with warnings.catch_warnings():
+                warnings.simplefilter("error", category=UserWarning)
+                embedded_data = embed_func(carrier, payload_binary, framing=payloader.FixedHeader(), **params)
+                container.save(_output_file, embedded_data)
+        except Warning as w:
+            return 0, w
+        except Exception as e:
+            return 1, e
+        return 2, ''
 
     def extract_file(self, _input_file, _output_file):
         algorithm_info = STEGANOGRAPHY[self.algorithm]
@@ -60,12 +73,27 @@ class Steganography:
         carrier = container.read()
 
         extracted_data = extract_func(carrier, framing=payloader.FixedHeader(), **params)
+
         if self.crypto is not None:
             raw = self.crypto.decrypt(extracted_data)
             if raw is None:
-                return
+                return 0, ''
             extracted_data = raw.decode('latin-1')
-        io.binary_to_file(extracted_data, _output_file)
+
+        extracted_data, stored_digest = self.integrity.detach(extracted_data)
+        if stored_digest is not None and not self.integrity.verify(extracted_data, stored_digest):
+            return 1, ''
+        try:
+            with warnings.catch_warnings():
+                warnings.simplefilter("error", category=UserWarning)
+                io.binary_to_file(extracted_data, _output_file)
+        except Warning as w:
+            return 2, w
+        except Exception as e:
+            return 2, e
+        if stored_digest is not None:
+            return 3, ''
+        return 4, ''
 
     def convert_params(self, _param_struct):
         params = self.parameters.copy()
