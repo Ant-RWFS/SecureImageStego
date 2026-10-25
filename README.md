@@ -1,3 +1,7 @@
+
+
+
+
 # SecureImageStego
 
 ![platform](https://img.shields.io/badge/platform-Windows%20x64-0078D6)
@@ -30,6 +34,7 @@ before anything is written to disk.
 - [Building from source](#building-from-source)
 - [Testing](#testing)
 - [Project layout](#project-layout)
+- [Demonstration](#demonstration)
 - [Compatibility](#compatibility)
 - [Security notes](#security-notes)
 - [Troubleshooting](#troubleshooting)
@@ -251,6 +256,9 @@ SecureImageStego/
     ├── set_icon.py             rewrites the flet.exe icon resources
     └── inno_setup.iss          installer script
 ```
+
+## Demonstration
+https://github.com/user-attachments/assets/88114924-6703-4d62-9c88-d020b5b054b0
 
 ## Compatibility
 
