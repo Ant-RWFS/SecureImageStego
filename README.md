@@ -250,11 +250,7 @@ SecureImageStego/
 │   └── gcc_dll/                MinGW-w64 build snapshot, used by Test.py
 └── tools/
     ├── build_msvc_cl.bat       native build, MSVC
-    ├── build_mingw64_gcc.bat   native build, MinGW-w64
-    ├── setup.bat               PyInstaller bundle + icon patch
-    ├── SecureImageStego.spec   PyInstaller spec
-    ├── set_icon.py             rewrites the flet.exe icon resources
-    └── inno_setup.iss          installer script
+    └── build_mingw64_gcc.bat   native build, MinGW-w64
 ```
 
 ## Demonstration
