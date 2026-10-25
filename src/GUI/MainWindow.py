@@ -1,5 +1,6 @@
 import flet as ft
 from src.GUI.Component import FileEmbed, FileExtract
+from src.Proccess.FileManagement import Paths
 
 
 class MainWindow:
@@ -17,6 +18,7 @@ class MainWindow:
         self.page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
         self.page.window_width = 700
         self.page.window_height = 400
+        self.page.window.icon = Paths.icon_path().as_posix()
 
     def init_layout(self):
         tabs = [self.embed_panel.tab, self.extract_panel.tab]

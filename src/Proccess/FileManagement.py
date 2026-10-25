@@ -1,18 +1,23 @@
 from pathlib import Path
 import hashlib
+import sys
 
 
 class Paths:
     root_cache = None
     src_cache = None
     build_cache = None
+    icon_cache = None
 
     dll_cache: dict[tuple[str, str], Path] = {}
 
     @classmethod
     def root_path(cls):
         if cls.root_cache is None:
-            cls.root_cache = Path(__file__).resolve().parents[2]
+            if getattr(sys, 'frozen', False):
+                cls.root_cache = Path(getattr(sys, '_MEIPASS', Path(sys.executable).parent))
+            else:
+                cls.root_cache = Path(__file__).resolve().parents[2]
         return cls.root_cache
 
     @classmethod
@@ -41,6 +46,12 @@ class Paths:
 
         cls.dll_cache.pop(key, None)
         return None
+
+    @classmethod
+    def icon_path(cls):
+        if cls.icon_cache is None:
+            cls.icon_cache = cls.root_path() / 'asset' / 'app.ico'
+        return cls.icon_cache
 
     @classmethod
     def clear_cache(cls):

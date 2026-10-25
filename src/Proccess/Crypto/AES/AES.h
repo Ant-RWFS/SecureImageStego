@@ -4,9 +4,13 @@
 #include <stdint.h>
 
 #if defined(_WIN32)
-#define AES_API __declspec(dllexport)
+#   if defined(AES_BUILD_DLL)
+#       define AES_API __declspec(dllexport)
+#   else
+#       define AES_API __declspec(dllimport)
+#   endif
 #else
-#define AES_API __attribute__((visibility("default")))
+#   define AES_API __attribute__((visibility("default")))
 #endif
 
 #ifdef __cplusplus

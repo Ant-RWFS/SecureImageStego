@@ -1,7 +1,9 @@
 #include "AES.h"
 #include <wmmintrin.h>
 #include <emmintrin.h>
+#if defined(_MSC_VER)
 #include <intrin.h>
+#endif
 
 static inline __m128i key_expand(__m128i k,__m128i a){
     a= _mm_shuffle_epi32(a,0xff);

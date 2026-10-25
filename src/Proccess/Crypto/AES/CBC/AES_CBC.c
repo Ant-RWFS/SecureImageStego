@@ -3,15 +3,19 @@
 #include "../AES.h"
 #include <string.h>
 
-static int pkcs7_unpad(uint8_t *in,size_t in_len){
+static int pkcs7_unpad(const uint8_t *in,size_t in_len){
     if (in_len==0||in_len%16!=0)
         return -1;
+
     uint8_t pad_len=in[in_len-1];
     if(pad_len<1||pad_len>16)
         return -1;
-    for(size_t i=in_len;i<in_len;i++)
-        if(in[i]!=pad_len)
-            return -1;
+    uint8_t diff=0;
+    for(size_t i=in_len-pad_len;i<in_len;i++)
+        diff|=(uint8_t)(in[i]^pad_len);
+    if(diff!=0)
+        return -1;
+
     return (int)(in_len-pad_len);
 }
 
