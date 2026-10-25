@@ -158,12 +158,12 @@ digest). A 1920×1080 RGB image at 1 bit/channel holds about 760 KB.
 Pick one toolchain; both produce the same directory layout under
 `build\crypto\`.
 
+MSVC CL(Recommanded:)
 ```bat
-rem MSVC - run from an "x64 Native Tools Command Prompt"
 tools\build_msvc_cl.bat
-
-rem MinGW-w64 - gcc must be on PATH, or pass its full path
-set "CC=C:\msys64\ucrt64\bin\gcc.exe"
+```
+MinGW64 GCC:
+```bat
 tools\build_mingw64_gcc.bat
 ```
 
@@ -182,9 +182,6 @@ The resulting DLLs require an x64 CPU with **AES-NI** and **PCLMULQDQ**
 ```bat
 python -m venv venv
 venv\Scripts\python.exe -m pip install -r requirements.txt
-venv\Scripts\python.exe -m pip install "pyinstaller==6.22.3"
-
-rem run from source
 venv\Scripts\python.exe Main.py
 ```
 
@@ -208,12 +205,8 @@ window and taskbar icons are not the default Flet logo.
 verifies the native DLLs against official known-answer vectors.
 
 ```bat
-rem every test\*_dll build that exists
 venv\Scripts\python.exe Test.py -v
-
 venv\Scripts\python.exe Test.py --dll-root test\gcc_dll
-
-rem list the reference vectors and their sources
 venv\Scripts\python.exe Test.py --list-vectors
 ```
 
