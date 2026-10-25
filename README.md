@@ -192,15 +192,6 @@ venv\Scripts\python.exe Main.py
 
 ### 3. Bundle and install
 
-```bat
-tools\setup.bat
-dist\SecureImageStego\SecureImageStego.exe --selftest
-```
-
-`setup.bat` runs PyInstaller with [`tools/SecureImageStego.spec`](tools/SecureImageStego.spec),
-then patches the icon resources of the bundled Flet client (`flet.exe`) so the
-window and taskbar icons are not the default Flet logo.
-
 `--selftest` runs the DLL, AES and embed/extract checks headlessly, writes
 `selftest.log` next to the executable and exits `0` on success.
 
