@@ -190,11 +190,6 @@ venv\Scripts\python.exe -m pip install -r requirements.txt
 venv\Scripts\python.exe Main.py
 ```
 
-### 3. Bundle and install
-
-`--selftest` runs the DLL, AES and embed/extract checks headlessly, writes
-`selftest.log` next to the executable and exits `0` on success.
-
 ## Testing
 
 `Test.py` is a self-contained `unittest` suite (no pytest required) that
